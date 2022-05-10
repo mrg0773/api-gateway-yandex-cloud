@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -20,8 +22,8 @@ type configuration struct {
 
 var cfg *configuration
 
-// HTTPHandler http requests to yandex cloud
-func HTTPHandler(w http.ResponseWriter, r *http.Request) {
+// HTTP http requests to yandex cloud
+func HTTP(w http.ResponseWriter, r *http.Request) {
 	if err := envconfig.Process("", &cfg); err != nil {
 		fmt.Printf("failed to load configuration: %s", err)
 		return
@@ -66,4 +68,39 @@ func HTTPHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("send request to mq id: %s ", messageID)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(messageID))
+}
+
+func MQ(ctx context.Context, msg *message) {
+	url := msg.Target + msg.Endpoint
+
+	req, err := http.NewRequestWithContext(ctx, url, msg.Method, bytes.NewReader(msg.Body))
+	if err != nil {
+		fmt.Printf("create request: %s", err)
+		return
+	}
+
+	for key, params := range msg.PathQuery {
+		for _, val := range params {
+			req.URL.Query().Add(key, val)
+		}
+	}
+
+	for key, param := range msg.Headers {
+		req.Header.Add(key, param[0])
+	}
+
+	client := &http.Client{}
+	for i := 0; i < msg.AttemptLimit; i++ {
+		res, err := client.Do(req)
+		if err != nil {
+			fmt.Printf("%d - send request: %s", i, err)
+			time.Sleep(msg.PauseAttempt)
+			continue
+		}
+		code := res.StatusCode
+		fmt.Printf("%d - response status code", code)
+		if code >= 200 || code <= 299 {
+			return
+		}
+	}
 }
