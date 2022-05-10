@@ -71,6 +71,7 @@ func HTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func MQ(ctx context.Context, msg *message) {
+	fmt.Printf("recived msg from mq: %+v", *msg)
 	url := msg.Target + msg.Endpoint
 
 	req, err := http.NewRequestWithContext(ctx, url, msg.Method, bytes.NewReader(msg.Body))
