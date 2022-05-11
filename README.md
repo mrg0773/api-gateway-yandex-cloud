@@ -1,12 +1,21 @@
 # api-gateway-yandex-cloud
 
-Для загрузки кода в cloude необходимо файлы *.go go.mod и go.sum поместить в архив .zip
+Cозданиe архива с исходным кодом http handler
+```
+make http-handler
+```
 
 Хендлер для обработки http запросов
 
 handler.HTTP
 
+
+Cозданиe архива с исходным кодом mq trigger
+```
+make http-handler
+```
+
 Хендлер для обработки сообщений из mq
 
-handler.MQ
+trigger.MQ
 
