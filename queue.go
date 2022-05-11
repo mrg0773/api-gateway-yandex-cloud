@@ -15,6 +15,8 @@ const (
 	SigningRegion = "ru-central1"
 )
 
+var queueName = "request"
+
 func connectQueue(ctx context.Context) (client *sqs.Client, queueURL string, err error) {
 	customResolver := aws.EndpointResolverWithOptionsFunc(
 		func(service, region string, options ...interface{}) (aws.Endpoint, error) {
@@ -37,7 +39,7 @@ func connectQueue(ctx context.Context) (client *sqs.Client, queueURL string, err
 	client = sqs.NewFromConfig(mqCfg)
 
 	queue, err := client.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
-		QueueName: &cfg.QueueName,
+		QueueName: &queueName,
 	})
 	if err != nil {
 		err = fmt.Errorf("get queue url: %w", err)

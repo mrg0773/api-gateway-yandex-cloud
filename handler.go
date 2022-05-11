@@ -14,8 +14,6 @@ type configuration struct {
 	AvailableMethods []string      `envconfig:"AVAILABLE_METHODS" default:"GET,POST,PUT"`
 	AttemptLimit     int           `envconfig:"ATTEMPT_LIMIT" required:"true"`
 	PauseAttempt     time.Duration `envconfig:"PAUSE_ATTEMPT" required:"true"`
-
-	QueueName string `envconfig:"QUEUE_NAME" required:"true"`
 }
 
 var cfg *configuration
@@ -27,13 +25,13 @@ func HTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	method := r.Method
-	if !inSlice(method, cfg.AvailableMethods) {
-		err := fmt.Errorf("method %s is not availabel", method)
+	fmt.Printf("configuration %+v\n", cfg)
+
+	if !inSlice(r.Method, cfg.AvailableMethods) {
+		err := fmt.Errorf("method %s is not availabel", r.Method)
 		fmt.Printf("method check: available method %s", cfg.AvailableMethods)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
-
 	}
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -47,7 +45,7 @@ func HTTP(w http.ResponseWriter, r *http.Request) {
 	msg := message{
 		Target:    cfg.TargetURL,
 		Endpoint:  r.RequestURI,
-		Method:    method,
+		Method:    r.Method,
 		Headers:   r.Header,
 		PathQuery: r.URL.Query(),
 
