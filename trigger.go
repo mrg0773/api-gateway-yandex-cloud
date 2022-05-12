@@ -9,7 +9,7 @@ import (
 )
 
 func MQ(ctx context.Context, msg *message) (err error) {
-	fmt.Printf("received msg from mq: %+v", *msg)
+	fmt.Printf("received msg from mq: %+v\n", *msg)
 	url := msg.Target + msg.Endpoint
 
 	req, err := http.NewRequestWithContext(ctx, url, msg.Method, bytes.NewReader(msg.Body))
@@ -27,6 +27,8 @@ func MQ(ctx context.Context, msg *message) (err error) {
 	for key, param := range msg.Headers {
 		req.Header.Add(key, param[0])
 	}
+
+	fmt.Printf("sent request:\n%s", formatRequest(req))
 
 	client := &http.Client{}
 	for i := 0; i < msg.AttemptLimit; i++ {
