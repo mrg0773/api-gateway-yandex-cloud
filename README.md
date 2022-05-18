@@ -12,7 +12,7 @@ handler.HTTP
 
 Cозданиe архива с исходным кодом mq trigger
 ```
-make http-handler
+make mq-trigger
 ```
 
 Хендлер для обработки сообщений из mq
