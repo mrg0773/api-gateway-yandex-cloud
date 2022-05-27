@@ -20,6 +20,8 @@ var cfg *configuration
 
 // HTTP http requests to yandex cloud
 func HTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("http handler")
+
 	if err := envconfig.Process("", &cfg); err != nil {
 		fmt.Printf("failed to load configuration: %s", err)
 		return

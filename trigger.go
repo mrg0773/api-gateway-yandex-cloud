@@ -8,8 +8,18 @@ import (
 	"time"
 )
 
-func MQ(ctx context.Context, msg *message) (err error) {
-	fmt.Printf("received msg from mq: %+v\n", *msg)
+func MQ() (err error) {
+	fmt.Println("mq trigger")
+
+	ctx := context.Background()
+
+	msg, err := recieveMessage(ctx)
+	if err != nil {
+		fmt.Printf("recieve message: %s", err)
+		return
+	}
+
+	fmt.Printf("received msg from mq: %+v\n", msg)
 	url := msg.Target + msg.Endpoint
 
 	req, err := http.NewRequestWithContext(ctx, url, msg.Method, bytes.NewReader(msg.Body))
@@ -18,9 +28,10 @@ func MQ(ctx context.Context, msg *message) (err error) {
 		return
 	}
 
+	q := req.URL.Query()
 	for key, params := range msg.PathQuery {
 		for _, val := range params {
-			req.URL.Query().Add(key, val)
+			q.Add(key, val)
 		}
 	}
 

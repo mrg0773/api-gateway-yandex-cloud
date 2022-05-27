@@ -75,3 +75,38 @@ func sendMessage(ctx context.Context, msg message) (messageID string, err error)
 	messageID = *send.MessageId
 	return
 }
+
+func recieveMessage(ctx context.Context) (msg message, err error) {
+	client, queueURL, err := connectQueue(ctx)
+	if err != nil {
+		err = fmt.Errorf("connect to mq: %w", err)
+		return
+	}
+
+	received, err := client.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
+		QueueUrl: &queueURL,
+	})
+	if err != nil {
+		err = fmt.Errorf("recieve message: %w", err)
+		return
+	}
+
+	for _, v := range received.Messages {
+		err = json.Unmarshal([]byte(*v.Body), &msg)
+		if err != nil {
+			err = fmt.Errorf("unmarshal message id: %s body: %s : %w", *v.MessageId, *v.Body, err)
+			return
+		}
+
+		if _, err = client.DeleteMessage(
+			ctx,
+			&sqs.DeleteMessageInput{
+				QueueUrl:      &queueURL,
+				ReceiptHandle: v.ReceiptHandle,
+			},
+		); err != nil {
+			return
+		}
+	}
+	return
+}
